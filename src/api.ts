@@ -5,7 +5,10 @@ async function wrapInvoke<T>(f: () => Promise<T>): Promise<T> {
   try {
     return await f();
   } catch (e: any) {
-    throw new Error(`${e.message}\nBacktrace:\n${e.backtrace}`);
+    if (e.message !== undefined) {
+      throw new Error(`${e.message}\nBacktrace:\n${e.backtrace}`);
+    }
+    throw new Error(e.toString());
   }
 }
 
@@ -51,4 +54,24 @@ export async function queryModIndex(
 
 export async function getPreferredLocales(): Promise<string[]> {
   return await wrapInvoke(async () => await invoke("get_preferred_locales"))
+}
+
+export interface Profile {
+  name: string,
+}
+
+export interface ProfileWithId extends Profile {
+  id: string,
+}
+
+export async function getProfiles(game: string): Promise<ProfileWithId[]> {
+  return await wrapInvoke(async () => await invoke("get_profiles", { game }));
+}
+
+export async function createProfile(game: string, name: string): Promise<string> {
+  return await wrapInvoke(async () => await invoke("create_profile", { game, name }));
+}
+
+export async function deleteProfile(game: string, id: string): Promise<void> {
+  return await wrapInvoke(async () => await invoke("delete_profile", { game, id }));
 }
